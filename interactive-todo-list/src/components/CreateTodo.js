@@ -1,35 +1,62 @@
-import React from "react";
-// import { ReactDOM } from "react-dom";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import TodoList from "./TodoList";
 import swal from "sweetalert";
 import Counter from "./Counter";
+import { fetchTodosFromAPI } from "./helpers";
 
-export default function CreateTodo() {
-  const [todo, setTodo] = useState({ title: "", done: false });
+function CreateTodo() {
+  const [todo, setTodo] = useState("");
   const [todoArr, setTodoArr] = useState([]);
+  const [deadline, setDeadline] = useState("");
+
+  useEffect(() => {
+    fetchTodosFromAPI().then((result) =>
+      setTodoArr(
+        result.map((item) => {
+          const ItemWithDone = { ...item, done: false };
+          return ItemWithDone;
+        })
+      )
+    );
+  }, []);
 
   const handleChange = (event) => {
-    let { value } = event.target;
-    let obj = {};
-    obj["title"] = value;
-    obj["done"] = false;
-    obj["id"] = Date.now();
-    setTodo(obj);
+    setTodo(event.target.value);
+  };
+  const handleDeadlineChange = (event) => {
+    setDeadline(event.target.value);
   };
 
-  const createTodo = (event) => {
-    const { name } = event.target;
-    if (event.key === "Enter" || name === "addTodo") {
-      if (todo.title !== "") {
-        const updatedTodoArray = [todo, ...todoArr];
-        console.log(updatedTodoArray);
-        setTodoArr(updatedTodoArray);
-        setTodo({ title: "", done: false });
-      } else {
-        swal("Oops", "Please write todo first", "error");
-      }
+  const createTodo = () => {
+    if (todo !== "" && deadline !== "") {
+      const newTodoObject = {
+        id: Date.now(),
+        description: todo,
+        deadline: deadline,
+        done: false,
+      };
+      const updatedTodoArray = [newTodoObject, ...todoArr];
+      setTodoArr(updatedTodoArray);
+      setTodo("");
+      setDeadline("");
+    } else {
+      swal("Oops", "Please write todo first", "error");
     }
+  };
+
+  const createTodoOnEnter = (event) => {
+    if (event.key === "Enter") {
+      createTodo();
+    }
+  };
+
+  const editTodo = (editedTodo) => {
+    setTodoArr((currentTodos) =>
+      currentTodos.map((currentTodo) =>
+        currentTodo.id === editedTodo.id ? editedTodo : currentTodo
+      )
+    );
+    swal("Info!", "You have updated the todo !", "info");
   };
 
   const completeTodo = (i) => {
@@ -46,8 +73,10 @@ export default function CreateTodo() {
     }
   };
 
-  const deleteTodo = (i) => {
-    const updatedTodoArray = todoArr.filter((todo, index) => index !== i);
+  const deleteTodo = (itemToDelete) => {
+    const updatedTodoArray = todoArr.filter(
+      (todo) => todo.id !== itemToDelete.id
+    );
     setTodoArr(updatedTodoArray);
     swal("Hey !", "You have deleted the todo !", "info");
   };
@@ -65,9 +94,16 @@ export default function CreateTodo() {
             type="text"
             name="todo"
             placeholder="Write a new todo ..."
-            value={todo.title}
-            onKeyPress={createTodo}
+            value={todo}
+            onKeyPress={createTodoOnEnter}
             onChange={handleChange}
+          />{" "}
+          <br />
+          <input
+            type="date"
+            name="date"
+            value={deadline}
+            onChange={handleDeadlineChange}
           />
           <button
             type="button"
@@ -84,7 +120,10 @@ export default function CreateTodo() {
         createTodo={createTodo}
         completeTodo={completeTodo}
         deleteTodo={deleteTodo}
+        editTodo={editTodo}
       />
     </>
   );
 }
+
+export default CreateTodo;

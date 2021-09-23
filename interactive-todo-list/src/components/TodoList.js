@@ -1,22 +1,19 @@
 import React from "react";
+import TodoItem from "./TodoItem";
 
-function TodoList(props) {
-  const { completeTodo, deleteTodo } = props;
-  let todoArr = props.todoArr.length > 0 ? props.todoArr : null;
+function TodoList({ completeTodo, deleteTodo, editTodo, todoArr }) {
   return (
     <div>
       <ul>
         {todoArr && todoArr.length > 0 ? (
           todoArr.map((el, i) => (
-            <li key={el.id}>
-              <div className={el["done"] ? "strike-through" : null}>
-                {el.title}
-              </div>
-              <div>
-                <input type="checkbox" onClick={() => completeTodo(el.id)} />
-                <button onClick={() => deleteTodo(i)}>Delete</button>
-              </div>
-            </li>
+            <TodoItem
+              key={el.id}
+              todo={el}
+              completeTodo={completeTodo}
+              deleteTodo={deleteTodo}
+              editTodo={editTodo}
+            />
           ))
         ) : (
           <h1>To do list is empty : No items 🤷‍♂️ </h1>
